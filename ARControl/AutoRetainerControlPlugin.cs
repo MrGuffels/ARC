@@ -207,6 +207,10 @@ public sealed partial class AutoRetainerControlPlugin : IDalamudPlugin
                 }
                 else
                 {
+                    Dictionary<uint, uint>? otherCharacterCounts = list.CheckAllCharacterInventory
+                        ? CalculateOtherCharacterInventory(ch, list.CheckRetainerInventory)
+                        : null;
+
                     itemsOnList = list.Items
                         .Select(x => new StockedItem
                         {
@@ -215,6 +219,9 @@ public sealed partial class AutoRetainerControlPlugin : IDalamudPlugin
                                              venturesInProgress.GetValueOrDefault(x.ItemId, 0) +
                                              (list.CheckRetainerInventory
                                                  ? (int)_allaganToolsIpc.GetRetainerItemCount(x.ItemId)
+                                                 : 0) +
+                                             (otherCharacterCounts != null
+                                                 ? (int)otherCharacterCounts.GetValueOrDefault(x.ItemId, 0u)
                                                  : 0),
                         })
                         .Where(x => x.InventoryCount < x.RequestedCount)
@@ -373,6 +380,34 @@ public sealed partial class AutoRetainerControlPlugin : IDalamudPlugin
         }
 
         return inProgress;
+    }
+
+    private Dictionary<uint, uint> CalculateOtherCharacterInventory(Configuration.CharacterConfiguration character,
+        bool includeRetainers)
+    {
+        Dictionary<uint, uint> counts = new Dictionary<uint, uint>();
+
+        void AddItems(ulong contentId)
+        {
+            foreach (var (itemId, quantity) in _allaganToolsIpc.GetCharacterItems(contentId))
+                counts[itemId] = counts.GetValueOrDefault(itemId, 0u) + quantity;
+        }
+
+        foreach (var other in _configuration.Characters)
+        {
+            if (other.LocalContentId == character.LocalContentId)
+                continue;
+
+            AddItems(other.LocalContentId);
+
+            if (includeRetainers)
+            {
+                foreach (var retainer in other.Retainers.Where(x => x.Managed))
+                    AddItems(retainer.RetainerContentId);
+            }
+        }
+
+        return counts;
     }
 
     private void RetainerTaskButtonDraw(ulong characterId, string retainerName)

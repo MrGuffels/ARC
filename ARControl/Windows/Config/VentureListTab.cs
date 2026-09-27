@@ -84,6 +84,7 @@ internal sealed class VentureListTab : ITab
                     ListType = list.Type,
                     ListPriority = list.Priority,
                     CheckRetainerInventory = list.CheckRetainerInventory,
+                    CheckAllCharacterInventory = list.CheckAllCharacterInventory,
                 };
                 ImGui.OpenPopup($"##EditList{list.Id}");
             }
@@ -133,7 +134,9 @@ internal sealed class VentureListTab : ITab
                                              list.Type == temporaryConfig.ListType &&
                                              list.Priority == temporaryConfig.ListPriority &&
                                              list.CheckRetainerInventory ==
-                                             temporaryConfig.CheckRetainerInventory));
+                                             temporaryConfig.CheckRetainerInventory &&
+                                             list.CheckAllCharacterInventory ==
+                                             temporaryConfig.CheckAllCharacterInventory));
             save |= ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Save, "Save");
             ImGui.EndDisabled();
 
@@ -146,11 +149,13 @@ internal sealed class VentureListTab : ITab
                 {
                     list.Priority = Configuration.ListPriority.InOrder;
                     list.CheckRetainerInventory = false;
+                    list.CheckAllCharacterInventory = false;
                 }
                 else
                 {
                     list.Priority = temporaryConfig.ListPriority;
                     list.CheckRetainerInventory = temporaryConfig.CheckRetainerInventory;
+                    list.CheckAllCharacterInventory = temporaryConfig.CheckAllCharacterInventory;
                 }
 
                 ImGui.CloseCurrentPopup();
@@ -417,6 +422,13 @@ internal sealed class VentureListTab : ITab
                     ref checkRetainerInventory))
                 temporaryConfig.CheckRetainerInventory = checkRetainerInventory;
             ImGui.PopID();
+
+            ImGui.PushID($"CheckAllCharacterInventory{list?.Id ?? Guid.Empty}");
+            bool checkAllCharacterInventory = temporaryConfig.CheckAllCharacterInventory;
+            if (ImGui.Checkbox("Check inventory of all characters (requires AllaganTools)",
+                    ref checkAllCharacterInventory))
+                temporaryConfig.CheckAllCharacterInventory = checkAllCharacterInventory;
+            ImGui.PopID();
         }
 
         return (save, canSave);
@@ -608,5 +620,6 @@ internal sealed class VentureListTab : ITab
         public Configuration.ListType ListType { get; set; }
         public Configuration.ListPriority ListPriority { get; set; }
         public bool CheckRetainerInventory { get; set; }
+        public bool CheckAllCharacterInventory { get; set; }
     }
 }

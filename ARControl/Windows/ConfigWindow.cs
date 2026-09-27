@@ -178,7 +178,9 @@ internal sealed class ConfigWindow : LWindow
                     ImGui.Indent(MainIndentSize);
                     ImGui.Text(list.Type == Configuration.ListType.CollectOneTime
                         ? "Items on this list will be collected once."
-                        : "Items on this list will be kept in stock on each character.");
+                        : list.CheckAllCharacterInventory
+                            ? "Items on this list will be kept in stock across all characters."
+                            : "Items on this list will be kept in stock on each character.");
                     ImGui.Spacing();
                     foreach (var item in list.Items)
                     {

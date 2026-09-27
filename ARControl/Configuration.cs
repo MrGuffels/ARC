@@ -23,6 +23,7 @@ internal sealed class Configuration : IPluginConfiguration
         public required ListType Type { get; set; } = ListType.CollectOneTime;
         public required ListPriority Priority { get; set; } = ListPriority.InOrder;
         public bool CheckRetainerInventory { get; set; }
+        public bool CheckAllCharacterInventory { get; set; }
         public List<QueuedItem> Items { get; set; } = new();
 
         public string GetIcon()
